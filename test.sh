@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if twurl app post tweet.read 'https://api.twitter.com/2/tweets/909818723028127749?tweet.fields=created_at'
+if twurl user get 'https://api.twitter.com/2/tweets/909818723028127749?tweet.fields=created_at'
 then
   echo 
   exit 0
