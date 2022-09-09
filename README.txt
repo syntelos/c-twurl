@@ -24,7 +24,10 @@ Build
 
   Run 'make'.  Uses 'clang'.
 
-  Requires "libcurl".  See http://curl.se/ for more info.
+  Requires "libcurl".  See http://curl.se/
+
+  Includes "json parser".
+  (https://github.com/json-parser/json-parser 11/2021)
 
 Usage
 
