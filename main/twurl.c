@@ -17,14 +17,16 @@
  */
 
 #include "twurl.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 typedef enum {
     main_op_unknown  = 0,
-    main_op_update   = 1,
     main_op_app_get  = 2,
-    main_op_user_get = 3
+    main_op_app_post = 3,
+    main_op_user_get = 4,
+    main_op_update   = 5
 
 } main_op;
 /*
@@ -45,6 +47,10 @@ main_op main_operator(int argx, int argc, char **argv){
                 if (0 == strcmp("get",arg)){
 
                     return main_op_app_get;
+                }
+                else if (0 == strcmp("post",arg)){
+
+                    return main_op_app_post;
                 }
             }
             break;
@@ -70,6 +76,51 @@ main_op main_operator(int argx, int argc, char **argv){
     return main_op_unknown;
 }
 
+int main_app_get(int argx, int argc, char **argv){
+
+    argx += 2;
+
+    if (argx < argc){
+
+        main_state = twurl_app_get(argv[argx]);
+    }
+    else {
+        main_state = false;
+    }
+
+    return 3;
+}
+
+int main_app_post(int argx, int argc, char **argv){
+
+    argx += 2;
+
+    if ((argx+1) < argc){
+
+        main_state = twurl_app_post(argv[argx],argv[argx+1]);
+    }
+    else {
+        main_state = false;
+    }
+
+    return 4;
+}
+
+int main_user_get(int argx, int argc, char **argv){
+
+    argx += 2;
+
+    if (argx < argc){
+
+        main_state = twurl_user_get(argv[argx]);
+    }
+    else {
+        main_state = false;
+    }
+
+    return 3;
+}
+
 int main_update(int argx, int argc, char **argv){
 
     main_state = twurl_update();
@@ -77,62 +128,61 @@ int main_update(int argx, int argc, char **argv){
     return 1;
 }
 
-int main_app_get(int argx, int argc, char **argv){
-
-    main_state = twurl_app_get(argv[argx+3]);
-
-    return 3;
-}
-
-int main_user_get(int argx, int argc, char **argv){
-
-    main_state = twurl_user_get(argv[argx+3]);
-
-    return 3;
-}
-
 void main_usage(int argc, char **argv){
     char *pn = argv[0];
 
-    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s user get <url>\n\t%s app update\n\nDescription\n\n\tFetch URL to stdout.  Update bearer credentials.\n\n",pn,pn,pn);
+    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s app update\n\n",pn,pn,pn,pn);
+
+    fprintf(stderr,"Description\n\n\tFetch URL to stdout.  Update bearer credentials.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys as well as the bearer\n\ttoken.\n\n");
 }
 
 int main(int argc, char **argv){
 
     if (1 < argc){
-        int argx;
 
-        for (argx = 1; main_state && argx < argc; ){
+        if (twurl_init()){
+            int argx;
 
-            switch (main_operator(argx,argc,argv)){
+            for (argx = 1; main_state && argx < argc; ){
 
-            case main_op_update:
-                argx += main_update(argx,argc,argv);
-                break;
+                switch (main_operator(argx,argc,argv)){
 
-            case main_op_app_get:
-                argx += main_app_get(argx,argc,argv);
-                break;
+                case main_op_app_get:
+                    argx += main_app_get(argx,argc,argv);
+                    break;
 
-            case main_op_user_get:
-                argx += main_user_get(argx,argc,argv);
-                break;
+                case main_op_app_post:
+                    argx += main_app_post(argx,argc,argv);
+                    break;
 
-            case main_op_unknown:
-                main_usage(argc,argv);
-                return 1;
+                case main_op_user_get:
+                    argx += main_user_get(argx,argc,argv);
+                    break;
 
-            default:
-                fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],argv[1]);
+                case main_op_update:
+                    argx += main_update(argx,argc,argv);
+                    break;
+
+                case main_op_unknown:
+                    main_usage(argc,argv);
+                    return 1;
+
+                default:
+                    fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],argv[argx]);
+                    return 1;
+                }
+            }
+
+            if (main_state){
+
+                return 0;
+            }
+            else {
                 return 1;
             }
         }
-
-        if (main_state){
-
-            return 0;
-        }
         else {
+            fprintf(stderr,"%s error initializing TWURL_STORE (%s).\n",argv[0],getenv("TWURL_STORE"));
             return 1;
         }
     }

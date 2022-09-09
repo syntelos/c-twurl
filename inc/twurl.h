@@ -27,6 +27,10 @@ bool_t twurl_app_get(char*);
 /*
  * Return true on success.
  */
+bool_t twurl_app_post(char*,char*);
+/*
+ * Return true on success.
+ */
 bool_t twurl_user_get(char*);
 /*
  * Fetch new bearer token to TWURL_STORE 'bearer_token.txt'.

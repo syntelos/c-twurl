@@ -26,6 +26,8 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
+#define TWURL_UA "syntelos-twurl/0.1"
+
 static char* twurl_store = null;
 
 char *store_read(char *file){
@@ -108,6 +110,74 @@ char *store_read_bearer(){
  * Employ api/consumer secret and bearer token to fetch URL
  * to standard console output.
  */
+bool_t twurl_app_post(char *scope, char *url){
+    if (null != url){
+
+        char *username = store_read_username();
+        if (null != username){
+            char *password = store_read_password();
+            if (null != password){
+                char *bearer = store_read_bearer();
+                if (null != bearer){
+
+                    CURL *curl = curl_easy_init();
+                    if (null != curl) {
+                        curl_easy_setopt(curl, CURLOPT_URL, url);
+                        curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
+
+                        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+
+                        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+
+                        curl_easy_setopt(curl, CURLOPT_USERNAME, username);
+
+                        curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
+
+                        curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
+
+                        curl_easy_setopt(curl, CURLOPT_POST, 1);
+                        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, scope);
+
+                        CURLcode re = curl_easy_perform(curl);
+
+                        curl_easy_cleanup(curl);
+
+                        free(username);
+
+                        free(password);
+
+                        free(bearer);
+
+                        if (CURLE_OK == re){
+
+                            return true;
+                        }
+                    }
+                    else {
+                        free(username);
+
+                        free(password);
+
+                        free(bearer);
+                    }
+                }
+                else {
+                    free(username);
+
+                    free(password);
+                }
+            }
+            else {
+                free(username);
+            }
+        }
+    }
+    return false;
+}
+/*
+ * Employ api/consumer secret and bearer token to fetch URL
+ * to standard console output.
+ */
 bool_t twurl_app_get(char *url){
     if (null != url){
 
@@ -121,6 +191,11 @@ bool_t twurl_app_get(char *url){
                     CURL *curl = curl_easy_init();
                     if (null != curl) {
                         curl_easy_setopt(curl, CURLOPT_URL, url);
+                        curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
+
+                        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+
+                        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
 
                         curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
 
@@ -179,6 +254,11 @@ bool_t twurl_user_get(char *url){
             CURL *curl = curl_easy_init();
             if (null != curl) {
                 curl_easy_setopt(curl, CURLOPT_URL, url);
+                curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
+
+                curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+
+                curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
 
                 curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
 
