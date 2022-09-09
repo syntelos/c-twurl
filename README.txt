@@ -24,7 +24,7 @@ Build
 
   Run 'make'.  Uses 'clang'.
 
-  Requires "libcurl".
+  Requires "libcurl".  See http://curl.se/ for more info.
 
 Usage
 

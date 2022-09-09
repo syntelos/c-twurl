@@ -17,16 +17,153 @@
  */
 
 #include "twurl.h"
+#include <curl/curl.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/fcntl.h>
+#include <unistd.h>
 
 static char* twurl_store = null;
+
+char *store_read(char *file){
+    fd_t fd = open(file,O_RDONLY);
+    if (-1 < fd){
+        struct stat st;
+        if (0 == fstat(fd,&st)){
+
+            off_t loa = st.st_size;
+
+            if (0 < loa){
+                /*
+                 * Read file to buffer
+                 */
+                char *buffer = calloc(loa,sizeof(char));
+                char *bp = buffer;
+                ssize_t rd;
+                size_t ct = loa;
+
+                while (0 < (rd = read(fd,bp,ct))){
+
+                    if (1 > rd){
+
+                        break;
+                    }
+                    else {
+                        bp += rd;
+                        ct -= rd;
+                    }
+                }
+
+                if (0 == ct){
+                    /*
+                     * trim tail termination (CR|LF)
+                     */
+                    off_t idx;
+
+                    char *tp = buffer+(loa-1);
+
+                    for (idx = 0; idx < loa; idx++, tp--){
+
+                        if (0 == *tp){
+
+                            continue;
+                        }
+                        else if (0x20 > *tp){
+
+                            *tp = 0;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+
+                    /*
+                     */
+                    return buffer;
+                }
+                else {
+                    free(buffer);
+                }
+            }
+        }
+
+        close(fd);
+    }
+    return null;
+}
+char *store_read_username(){
+    return store_read("api_key.txt");
+}
+char *store_read_password(){
+    return store_read("api_key_secret.txt");
+}
+char *store_read_bearer(){
+    return store_read("bearer_token.txt");
+}
+
 /*
  * Employ api/consumer secret and bearer token to fetch URL
  * to standard console output.
  */
 bool_t twurl_app_get(char *url){
+    if (null != url){
 
+        char *username = store_read_username();
+        if (null != username){
+            char *password = store_read_password();
+            if (null != password){
+                char *bearer = store_read_bearer();
+                if (null != bearer){
+
+                    CURL *curl = curl_easy_init();
+                    if (null != curl) {
+                        curl_easy_setopt(curl, CURLOPT_URL, url);
+
+                        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+
+                        curl_easy_setopt(curl, CURLOPT_USERNAME, username);
+
+                        curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
+
+                        curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
+
+                        CURLcode re = curl_easy_perform(curl);
+
+                        curl_easy_cleanup(curl);
+
+                        free(username);
+
+                        free(password);
+
+                        free(bearer);
+
+                        if (CURLE_OK == re){
+
+                            return true;
+                        }
+                    }
+                    else {
+                        free(username);
+
+                        free(password);
+
+                        free(bearer);
+                    }
+                }
+                else {
+                    free(username);
+
+                    free(password);
+                }
+            }
+            else {
+                free(username);
+            }
+        }
+    }
     return false;
 }
 /*
@@ -34,7 +171,35 @@ bool_t twurl_app_get(char *url){
  * output.
  */
 bool_t twurl_user_get(char *url){
+    if (null != url){
 
+        char *bearer = store_read_bearer();
+        if (null != bearer){
+
+            CURL *curl = curl_easy_init();
+            if (null != curl) {
+                curl_easy_setopt(curl, CURLOPT_URL, url);
+
+                curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+
+                curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
+
+                CURLcode re = curl_easy_perform(curl);
+
+                curl_easy_cleanup(curl);
+
+                free(bearer);
+
+                if (CURLE_OK == re){
+
+                    return true;
+                }
+            }
+            else {
+                free(bearer);
+            }
+        }
+    }
     return false;
 }
 /*
@@ -53,9 +218,11 @@ bool_t twurl_init(){
 
     if (null != twurl_store){
 
-        return true;
+        if (0 == chdir(twurl_store)){
+
+            return true;
+        }
     }
-    else {
-        return false;
-    }
+    return false;
+
 }

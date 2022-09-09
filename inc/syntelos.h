@@ -1,6 +1,6 @@
 /*
  * Syntelos TWURL
- * Copyright (C) 2020, John Pritchard, Syntelos
+ * Copyright (C) 2022, John Pritchard, Syntelos
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,6 +33,10 @@ typedef uint8_t bool_t;
  * Pointer
  */
 #define null 0
+/*
+ * File descriptor
+ */
+typedef int fd_t;
 /*
  * MMAP null
  */
