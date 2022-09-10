@@ -197,35 +197,91 @@ int main(int argc, char **argv){
     if (1 < argc){
 
         if (twurl_init()){
-            int argx;
+            int argx, last;
 
             for (argx = 1; main_state && argx < argc; ){
 
-                switch (main_operator(argx,argc,argv)){
+                if (main_state){
+                    switch (main_operator(argx,argc,argv)){
 
-                case main_op_app_get:
-                    argx += main_app_get(argx,argc,argv);
-                    break;
+                    case main_op_app_get:
+                        last = argx;
+                        argx += main_app_get(argx,argc,argv);
+                        break;
 
-                case main_op_app_post:
-                    argx += main_app_post(argx,argc,argv);
-                    break;
+                    case main_op_app_post:
+                        last = argx;
+                        argx += main_app_post(argx,argc,argv);
+                        break;
 
-                case main_op_user_get:
-                    argx += main_user_get(argx,argc,argv);
-                    break;
+                    case main_op_user_get:
+                        last = argx;
+                        argx += main_user_get(argx,argc,argv);
+                        break;
 
-                case main_op_update:
-                    argx += main_update(argx,argc,argv);
-                    break;
+                    case main_op_update:
+                        last = argx;
+                        argx += main_update(argx,argc,argv);
+                        break;
 
-                case main_op_unknown:
-                    main_usage(argc,argv);
-                    return 1;
+                    case main_op_delete:
+                        last = argx;
+                        argx += main_delete(argx,argc,argv);
+                        break;
 
-                default:
-                    fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],argv[argx]);
-                    return 1;
+                    case main_op_print:
+                        last = argx;
+                        argx += main_print(argx,argc,argv);
+                        break;
+
+                    case main_op_write:
+                        last = argx;
+                        argx += main_write(argx,argc,argv);
+                        break;
+
+                    case main_op_unknown:
+                        main_usage(argc,argv);
+                        return 1;
+
+                    default:
+                        fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],argv[argx]);
+                        return 1;
+                    }
+                }
+                else {
+                    switch (main_operator(last,argc,argv)){
+
+                    case main_op_app_get:
+                        fprintf(stderr,"%s error processing 'app get %s'.\n",argv[0],argv[last+2]);
+                        return 1;
+
+                    case main_op_app_post:
+                        fprintf(stderr,"%s error processing 'app post %s %s'.\n",argv[0],argv[last+2],argv[last+3]);
+                        return 1;
+
+                    case main_op_user_get:
+                        fprintf(stderr,"%s error processing 'user get %s'.\n",argv[0],argv[last+2]);
+                        return 1;
+
+                    case main_op_update:
+                        fprintf(stderr,"%s error processing 'update'.\n",argv[0]);
+                        return 1;
+
+                    case main_op_delete:
+                        fprintf(stderr,"%s error processing 'delete %s'.\n",argv[0],argv[last+1]);
+                        return 1;
+
+                    case main_op_print:
+                        fprintf(stderr,"%s error processing 'print'.\n",argv[0]);
+                        return 1;
+
+                    case main_op_write:
+                        fprintf(stderr,"%s error processing 'write %s'.\n",argv[0],argv[last+1]);
+                        return 1;
+
+                    default:
+                        return 1;
+                    }
                 }
             }
 

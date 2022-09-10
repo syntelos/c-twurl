@@ -29,73 +29,197 @@
 
 #define TWURL_UA "syntelos-twurl/0.1"
 
-static char* twurl_store = null;
+char* twurl_work = null;
 
-char *store_read(char *file){
-    fd_t fd = open(file,O_RDONLY);
-    if (-1 < fd){
-        struct stat st;
-        if (0 == fstat(fd,&st)){
+char* twurl_store = null;
 
-            off_t loa = st.st_size;
+char *work_read(char *file){
 
-            if (0 < loa){
-                /*
-                 * Read file to buffer
-                 */
-                char *buffer = calloc(loa,sizeof(char));
-                char *bp = buffer;
-                ssize_t rd;
-                size_t ct = loa;
+    if (0 == chdir(twurl_work)){
 
-                while (0 < (rd = read(fd,bp,ct))){
+        fd_t fd = open(file,O_RDONLY);
+        if (-1 < fd){
+            struct stat st;
+            if (0 == fstat(fd,&st)){
 
-                    if (1 > rd){
+                off_t loa = st.st_size;
 
-                        break;
-                    }
-                    else {
-                        bp += rd;
-                        ct -= rd;
-                    }
-                }
-
-                if (0 == ct){
+                if (0 < loa){
                     /*
-                     * trim tail termination (CR|LF)
+                     * Read file to buffer
                      */
-                    off_t idx;
+                    char *buffer = calloc(loa,sizeof(char));
+                    char *bp = buffer;
+                    ssize_t rd;
+                    size_t ct = loa;
 
-                    char *tp = buffer+(loa-1);
+                    while (0 < (rd = read(fd,bp,ct))){
 
-                    for (idx = 0; idx < loa; idx++, tp--){
+                        if (1 > rd){
 
-                        if (0 == *tp){
-
-                            continue;
-                        }
-                        else if (0x20 > *tp){
-
-                            *tp = 0;
-                        }
-                        else {
                             break;
                         }
+                        else {
+                            bp += rd;
+                            ct -= rd;
+                        }
                     }
 
-                    /*
-                     */
-                    return buffer;
-                }
-                else {
-                    free(buffer);
+                    if (0 == ct){
+                        /*
+                         * trim tail termination (CR|LF)
+                         */
+                        off_t idx;
+
+                        char *tp = buffer+(loa-1);
+
+                        for (idx = 0; idx < loa; idx++, tp--){
+
+                            if (0 == *tp){
+
+                                continue;
+                            }
+                            else if (0x20 > *tp){
+
+                                *tp = 0;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+
+                        /*
+                         */
+                        return buffer;
+                    }
+                    else {
+                        free(buffer);
+                    }
                 }
             }
-        }
 
-        close(fd);
+            close(fd);
+        }
     }
     return null;
+}
+bool_t work_write(char *file, char *source, off_t size){
+
+    if (0 == chdir(twurl_work)){
+
+        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC));
+        if (-1 < fd){
+
+            ssize_t wr;
+            size_t rm = size;
+            char *sp = source;
+
+            while (0 < (wr = write(fd,sp,rm))){
+
+                sp += wr;
+                rm -= wr;
+            }
+
+            close(fd);
+
+            return true;
+        }
+    }
+    return false;
+}
+char *store_read(char *file){
+
+    if (0 == chdir(twurl_store)){
+
+        fd_t fd = open(file,O_RDONLY);
+        if (-1 < fd){
+            struct stat st;
+            if (0 == fstat(fd,&st)){
+
+                off_t loa = st.st_size;
+
+                if (0 < loa){
+                    /*
+                     * Read file to buffer
+                     */
+                    char *buffer = calloc(loa,sizeof(char));
+                    char *bp = buffer;
+                    ssize_t rd;
+                    size_t ct = loa;
+
+                    while (0 < (rd = read(fd,bp,ct))){
+
+                        if (1 > rd){
+
+                            break;
+                        }
+                        else {
+                            bp += rd;
+                            ct -= rd;
+                        }
+                    }
+
+                    if (0 == ct){
+                        /*
+                         * trim tail termination (CR|LF)
+                         */
+                        off_t idx;
+
+                        char *tp = buffer+(loa-1);
+
+                        for (idx = 0; idx < loa; idx++, tp--){
+
+                            if (0 == *tp){
+
+                                continue;
+                            }
+                            else if (0x20 > *tp){
+
+                                *tp = 0;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+
+                        /*
+                         */
+                        return buffer;
+                    }
+                    else {
+                        free(buffer);
+                    }
+                }
+            }
+
+            close(fd);
+        }
+    }
+    return null;
+}
+bool_t store_write(char *file, char *source, off_t size){
+
+    if (0 == chdir(twurl_store)){
+
+        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC));
+        if (-1 < fd){
+
+            ssize_t wr;
+            size_t rm = size;
+            char *sp = source;
+
+            while (0 < (wr = write(fd,sp,rm))){
+
+                sp += wr;
+                rm -= wr;
+            }
+
+            close(fd);
+
+            return true;
+        }
+    }
+    return false;
 }
 char *store_read_username(){
     return store_read("api_key.txt");
@@ -339,26 +463,88 @@ bool_t twurl_update(){
  */
 bool_t twurl_delete(int index){
 
-    return false; // TODO
+    if (null != data_rec){
+        off_t x = 0;
+
+        twurl_data_rec *prev, *this;
+
+        for (prev = null, this = data_rec; null != this; prev = this, x++, this = this->next){
+
+            if (x == index){
+
+                if (null == prev){
+
+                    data_rec = this->next;
+                }
+                else {
+
+                    prev->next = this->next;
+                }
+
+                twurl_data_rec_destroy(this);
+
+                break;
+            }
+        }
+
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 /*
  * Output data.
  */
 bool_t twurl_print(){
 
-    return false; // TODO
+    if (null != data_rec){
+        twurl_data_rec *dp;
+
+        for (dp = data_rec; null != dp; dp = dp->next){
+
+            fprintf(stdout,"%s %s\n",dp->identity,dp->object);
+        }
+
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 /*
  * Write data.
  */
 bool_t twurl_write(char *file){
+    if (0 == chdir(twurl_work)){
 
-    return false; // TODO
+        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC));
+        if (-1 < fd){
+            FILE *io = fdopen(fd,"w");
+            if (null != io){
+
+                twurl_data_rec *dp;
+
+                for (dp = data_rec; null != dp; dp = dp->next){
+
+                    fprintf(io,"%s %s\n",dp->identity,dp->object);
+                }
+
+                fclose(io);
+            }
+            close(fd);
+
+            return true;
+        }
+    }
+    return false;
 }
 /*
  * Read TWURL_STORE.
  */
 bool_t twurl_init(){
+
+    twurl_work = getcwd(null,0);
 
     twurl_store = getenv("TWURL_STORE");
 
