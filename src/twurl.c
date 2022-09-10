@@ -27,7 +27,7 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
-#define TWURL_UA "syntelos-twurl/0.1"
+#define TWURL_UA "syntelos-twurl/0.2"
 
 char* twurl_work = null;
 

@@ -17,22 +17,25 @@
  */
 
 #include "twurl.h"
+#include "twurl_data.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <readline/readline.h>
 
 typedef enum {
-    main_op_unknown  = 0,
-    main_op_readline = 1,
-    main_op_app_get  = 2,
-    main_op_app_post = 3,
-    main_op_user_get = 4,
-    main_op_update   = 5,
-    main_op_delete   = 6,
-    main_op_print    = 7,
-    main_op_write    = 8,
-    main_op_valueof  = 9
+    main_op_unknown     = 0x00,
+    main_op_readline    = 0x01,
+    main_op_app_get     = 0x02,
+    main_op_app_post    = 0x03,
+    main_op_user_get    = 0x04,
+    main_op_update      = 0x05,
+    main_op_delete      = 0x06,
+    main_op_print       = 0x07,
+    main_op_write       = 0x08,
+    main_op_valueof     = 0x09,
+    main_op_data_table  = 0x0A,
+    main_op_data_series = 0x0B
 
 } main_op;
 /*
@@ -53,6 +56,7 @@ main_op main_operator(int argx, int argc, char **argv){
             break;
         case 'a':
             if (0 == strcmp("app",arg)){
+
                 argx += 1;
                 arg = argv[argx];
 
@@ -67,7 +71,23 @@ main_op main_operator(int argx, int argc, char **argv){
             }
             break;
         case 'd':
-            if (0 == strcmp("delete",arg)){
+            if (0 == strcmp("data",arg)){
+
+                argx += 1;
+                if (argx < argc){
+                    arg = argv[argx];
+
+                    if (0 == strcmp("table",arg)){
+
+                        return main_op_data_table;
+                    }
+                    else if (0 == strcmp("series",arg)){
+
+                        return main_op_data_series;
+                    }
+                }
+            }
+            else if (0 == strcmp("delete",arg)){
 
                 return main_op_delete;
             }
@@ -84,12 +104,15 @@ main_op main_operator(int argx, int argc, char **argv){
                 return main_op_update;
             }
             else if (0 == strcmp("user",arg)){
+
                 argx += 1;
-                arg = argv[argx];
+                if (argx < argc){
+                    arg = argv[argx];
 
-                if (0 == strcmp("get",arg)){
+                    if (0 == strcmp("get",arg)){
 
-                    return main_op_user_get;
+                        return main_op_user_get;
+                    }
                 }
             }
             break;
@@ -212,10 +235,24 @@ int main_valueof(int argx, int argc, char **argv){
     return 2;
 }
 
+int main_data_table(int argx, int argc, char **argv){
+
+    twurl_data_rec_create_mode_set(twurl_data_rec_create_mode_table);
+
+    return 2;
+}
+
+int main_data_series(int argx, int argc, char **argv){
+
+    twurl_data_rec_create_mode_set(twurl_data_rec_create_mode_series);
+
+    return 2;
+}
+
 void main_usage(int argc, char **argv){
     char *pn = argv[0];
 
-    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\t%s valueof <name>\n\n",pn,pn,pn,pn,pn,pn,pn,pn);
+    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\t%s valueof <name>\n\t%s data table\n\t%s data series\n\n",pn,pn,pn,pn,pn,pn,pn,pn,pn,pn);
 
     fprintf(stderr,"Description\n\n\tFetch URL to internal data table.  Update bearer\n\tcredentials.  Produce data to console or file.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys.\n\n");
 }
@@ -407,6 +444,24 @@ int main_readline(int argx, int argc, char **argv){
             }
             break;
 
+        case main_op_data_table:
+            main_data_table(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'data table'.\n",argv[0]);
+                return 1;
+            }
+            break;
+
+        case main_op_data_series:
+            main_data_series(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'data series'.\n",argv[0]);
+                return 1;
+            }
+            break;
+
         default:
             fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],args->array[0]);
             break;
@@ -473,6 +528,16 @@ int main(int argc, char **argv){
                         argx += main_valueof(argx,argc,argv);
                         break;
 
+                    case main_op_data_table:
+                        last = argx;
+                        argx += main_data_table(argx,argc,argv);
+                        break;
+
+                    case main_op_data_series:
+                        last = argx;
+                        argx += main_data_series(argx,argc,argv);
+                        break;
+
                     case main_op_unknown:
                         main_usage(argc,argv);
                         return 1;
@@ -519,6 +584,14 @@ int main(int argc, char **argv){
 
                     case main_op_valueof:
                         fprintf(stderr,"%s error processing 'valueof %s'.\n",argv[0],argv[last+1]);
+                        return 1;
+
+                    case main_op_data_table:
+                        fprintf(stderr,"%s error processing 'data table'.\n",argv[0]);
+                        return 1;
+
+                    case main_op_data_series:
+                        fprintf(stderr,"%s error processing 'data series'.\n",argv[0]);
                         return 1;
 
                     default:

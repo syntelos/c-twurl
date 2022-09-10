@@ -66,6 +66,22 @@ typedef struct _twurl_data_iob {
 
 } twurl_data_iob;
 /*
+ * Structure of twurl_data_rec content.
+ */
+typedef enum _twurl_data_rec_create_mode {
+
+    twurl_data_rec_create_mode_unknown = 0,
+    /*
+     * Table data structure
+     */
+    twurl_data_rec_create_mode_table   = 1,
+    /*
+     * List data structure
+     */
+    twurl_data_rec_create_mode_series  = 2
+
+} twurl_data_rec_create_mode;
+/*
  * libcurl write_callback
  */
 size_t twurl_data_iob_reader(char*, size_t, size_t, void*);
@@ -84,5 +100,9 @@ int twurl_data_rec_indexof(twurl_data_rec*,char*);
 twurl_data_rec* twurl_data_rec_find(twurl_data_rec*,char*);
 
 void twurl_data_rec_destroy(twurl_data_rec*);
+
+twurl_data_rec_create_mode twurl_data_rec_create_mode_get();
+
+bool_t twurl_data_rec_create_mode_set(twurl_data_rec_create_mode);
 
 #endif

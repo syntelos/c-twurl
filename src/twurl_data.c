@@ -86,6 +86,8 @@ void twurl_data_iob_destroy(twurl_data_iob *cx){
     }
 }
 
+twurl_data_rec_create_mode _data_rec_create_mode = twurl_data_rec_create_mode_table;
+
 twurl_data_rec* _data_rec_create(twurl_data_rec *record, char *name, off_t name_size, char *value, off_t value_size){
     if (null != name && 0 < name_size && null != value && 0 < value_size){
 
@@ -105,7 +107,11 @@ twurl_data_rec* _data_rec_create(twurl_data_rec *record, char *name, off_t name_
                 memcpy(record->object,value,vz);
             }
         }
-        else {
+        else if (twurl_data_rec_create_mode_table == _data_rec_create_mode){
+            /*
+             * In table mode each identity is a unique
+             * identifier in the data record set.
+             */
             twurl_data_rec *tgt = record;
             while (null != tgt){
 
@@ -118,6 +124,38 @@ twurl_data_rec* _data_rec_create(twurl_data_rec *record, char *name, off_t name_
                     break;
                 }
                 else if (null != tgt->next){
+
+                    tgt = tgt->next;
+                }
+                else {
+                    tgt->next = calloc(1,sizeof(twurl_data_rec));
+                    tgt = tgt->next;
+                    if (null != tgt){
+                        off_t nz = min(twurl_identity_size,name_size);
+
+                        memset(tgt->identity,0,twurl_identity_size);
+                        memcpy(tgt->identity,name,nz);
+
+                        off_t vz = min(twurl_object_size,value_size);
+
+                        memset(tgt->object,0,twurl_object_size);
+                        memcpy(tgt->object,value,vz);
+                    }
+                    break;
+                }
+            }
+
+        }
+        else {
+            /*
+             * In list mode the unique identity of each
+             * identifier in the data record set defines a
+             * serial list element.
+             */
+            twurl_data_rec *tgt = record;
+            while (null != tgt){
+
+                if (null != tgt->next){
 
                     tgt = tgt->next;
                 }
@@ -284,5 +322,26 @@ void twurl_data_rec_destroy(twurl_data_rec *record){
             free(record);
         }
         record = n;
+    }
+}
+
+twurl_data_rec_create_mode twurl_data_rec_create_mode_get(){
+
+    return  _data_rec_create_mode;
+}
+
+bool_t twurl_data_rec_create_mode_set(twurl_data_rec_create_mode m){
+
+    switch (m){
+
+    case twurl_data_rec_create_mode_table:
+    case twurl_data_rec_create_mode_series:
+
+        _data_rec_create_mode = m;
+
+        return true;
+
+    default:
+        return false;
     }
 }

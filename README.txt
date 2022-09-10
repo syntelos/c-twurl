@@ -76,6 +76,14 @@ Usage
 
     Write internal data table to file.
 
+  twurl data table
+
+    Structure data as table.
+
+  twurl data series
+
+    Structure data as series.
+
 
   These operations can be chained together on the command
   line, or entered serially on the console.
