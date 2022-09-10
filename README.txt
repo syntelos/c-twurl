@@ -46,6 +46,10 @@ Build
 
 Usage
 
+  twurl -
+
+    Enter console input shell.
+
   twurl user get <url>
 
     Employ bearer token to fetch URL to internal data table.
@@ -72,3 +76,6 @@ Usage
 
     Write internal data table to file.
 
+
+  These operations can be chained together on the command
+  line, or entered serially on the console.
