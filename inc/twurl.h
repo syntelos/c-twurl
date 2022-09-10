@@ -49,6 +49,10 @@ bool_t twurl_print();
  */
 bool_t twurl_write(char *file);
 /*
+ * Output data.
+ */
+bool_t twurl_valueof(char *name);
+/*
  * Requires environment variable TWURL_STORE to define a
  * directory containing files "api_key.txt",
  * "api_key_secret.txt", and "bearer_token.txt".

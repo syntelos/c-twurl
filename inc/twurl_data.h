@@ -19,10 +19,14 @@
 #define syntelos_twurl_data_h_
 
 #include "twurl.h"
-
+/*
+ * 256 (1/4 KB)
+ */
 #define twurl_identity_size 0x100
-
-#define twurl_object_size 0x600
+/*
+ * 4096 (4 KB)
+ */
+#define twurl_object_size 0x1000
 /*
  * Object content in textual format.
  */

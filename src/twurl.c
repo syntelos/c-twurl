@@ -543,6 +543,23 @@ bool_t twurl_write(char *file){
     return false;
 }
 /*
+ * Output data value of named record.
+ */
+bool_t twurl_valueof(char *name){
+
+    twurl_data_rec *record = twurl_data_rec_find(data_rec,name);
+    if (null != record){
+
+        fprintf(stdout,"%s\n",record->object);
+
+        return true;
+    }
+    else {
+
+        return false;
+    }
+}
+/*
  * Read TWURL_STORE.
  */
 bool_t twurl_init(){

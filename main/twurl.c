@@ -31,7 +31,8 @@ typedef enum {
     main_op_update   = 5,
     main_op_delete   = 6,
     main_op_print    = 7,
-    main_op_write    = 8
+    main_op_write    = 8,
+    main_op_valueof  = 9
 
 } main_op;
 /*
@@ -96,6 +97,12 @@ main_op main_operator(int argx, int argc, char **argv){
             if (0 == strcmp("write",arg)){
 
                 return main_op_write;
+            }
+            break;
+        case 'v':
+            if (0 == strcmp("valueof",arg)){
+
+                return main_op_valueof;
             }
             break;
         default:
@@ -192,10 +199,23 @@ int main_write(int argx, int argc, char **argv){
     return 2;
 }
 
+int main_valueof(int argx, int argc, char **argv){
+
+    argx += 1;
+
+    if (argx < argc){
+
+        char *arg = argv[argx];
+
+        main_state = twurl_valueof(arg);
+    }
+    return 2;
+}
+
 void main_usage(int argc, char **argv){
     char *pn = argv[0];
 
-    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\n",pn,pn,pn,pn,pn,pn,pn);
+    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\t%s valueof <name>\n\n",pn,pn,pn,pn,pn,pn,pn,pn);
 
     fprintf(stderr,"Description\n\n\tFetch URL to internal data table.  Update bearer\n\tcredentials.  Produce data to console or file.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys.\n\n");
 }
@@ -378,6 +398,15 @@ int main_readline(int argx, int argc, char **argv){
             }
             break;
 
+        case main_op_valueof:
+            main_valueof(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'valueof %s'.\n",argv[0],args->array[1]);
+                return 1;
+            }
+            break;
+
         default:
             fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],args->array[0]);
             break;
@@ -439,6 +468,11 @@ int main(int argc, char **argv){
                         argx += main_write(argx,argc,argv);
                         break;
 
+                    case main_op_valueof:
+                        last = argx;
+                        argx += main_valueof(argx,argc,argv);
+                        break;
+
                     case main_op_unknown:
                         main_usage(argc,argv);
                         return 1;
@@ -481,6 +515,10 @@ int main(int argc, char **argv){
 
                     case main_op_write:
                         fprintf(stderr,"%s error processing 'write %s'.\n",argv[0],argv[last+1]);
+                        return 1;
+
+                    case main_op_valueof:
+                        fprintf(stderr,"%s error processing 'valueof %s'.\n",argv[0],argv[last+1]);
                         return 1;
 
                     default:
