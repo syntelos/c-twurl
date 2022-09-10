@@ -1,15 +1,21 @@
 
-Description
+syntelos-twurl
 
-  Perform twitter curl via "libcurl".
-
-  Consolidating twitter curl to convenient code and
-  configuration forms and formats is hindered by translating
-  HTTP headers across shell functions and commands.  This C
-  programming language program solves this problem.  Twitter
-  curl operations are condensed and configuration is
-  consolidated for the benefit of shell scripts that do
+  Yet another "twurl", this one in C.  A few vital twitter
+  curl operations for the benefit of shell scripts that do
   twitter work.
+
+  The JSON data received from the twitter API is "condensed"
+  into an internal data table format.  The internal data
+  table is displayed using "print" or filed using "write
+  <file>".  The command line or console input shell performs
+  multiple operations.
+
+  The command line "app get <url> print" will show the
+  internal data table for that operation.
+
+  The command line "user get <url> valueof html" will
+  extract a result from the operation.
 
 Configuration
 
@@ -19,6 +25,11 @@ Configuration
     api_key.txt
     api_key_secret.txt
     bearer_token.txt
+
+  The 'api' files must be created and configured manually.
+
+  The 'bearer' file may be subsequently created using 'twurl
+  update'.
 
 Build
 
@@ -47,7 +58,7 @@ Usage
   twurl update
 
     Fetch new bearer token to TWURL_STORE
-    'bearer_token.txt'.
+    'bearer_token.txt'.  Wipes the internal data table.
 
   twurl delete <index>
 
