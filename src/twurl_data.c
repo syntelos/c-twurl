@@ -86,27 +86,27 @@ void twurl_data_iob_destroy(twurl_data_iob *cx){
     }
 }
 
-twurl_data_rec* _data_rec_create(twurl_data_rec *id, char *name, off_t name_size, char *value, off_t value_size){
+twurl_data_rec* _data_rec_create(twurl_data_rec *record, char *name, off_t name_size, char *value, off_t value_size){
     if (null != name && 0 < name_size && null != value && 0 < value_size){
 
-        if (null == id){
+        if (null == record){
 
-            id = calloc(1,sizeof(twurl_data_rec));
+            record = calloc(1,sizeof(twurl_data_rec));
 
-            if (null != id){
+            if (null != record){
                 off_t nz = min(twurl_identity_size,name_size);
 
-                memset(id->identity,0,twurl_identity_size);
-                memcpy(id->identity,name,nz);
+                memset(record->identity,0,twurl_identity_size);
+                memcpy(record->identity,name,nz);
 
                 off_t vz = min(twurl_object_size,value_size);
 
-                memset(id->object,0,twurl_object_size);
-                memcpy(id->object,value,vz);
+                memset(record->object,0,twurl_object_size);
+                memcpy(record->object,value,vz);
             }
         }
         else {
-            twurl_data_rec *tgt = id;
+            twurl_data_rec *tgt = record;
             while (null != tgt){
 
                 if (0 == strcmp(name,tgt->identity)){
@@ -141,10 +141,10 @@ twurl_data_rec* _data_rec_create(twurl_data_rec *id, char *name, off_t name_size
 
         }
     }
-    return id;
+    return record;
 }
 
-twurl_data_rec* twurl_data_rec_create(twurl_data_rec *id, twurl_data_iob *cx){
+twurl_data_rec* twurl_data_rec_create(twurl_data_rec *record, twurl_data_iob *cx){
     if (null != cx && 0 < cx->limit){
 
         json_value *doc = json_parse(cx->content,cx->limit);
@@ -193,7 +193,7 @@ twurl_data_rec* twurl_data_rec_create(twurl_data_rec *id, twurl_data_iob *cx){
                                 off_t ll = vov->u.string.length;
                                 char* ss = vov->u.string.ptr;
 
-                                id = _data_rec_create(id,von,vonz,ss,ll);
+                                record = _data_rec_create(record,von,vonz,ss,ll);
                             }
                         }
                     }
@@ -201,7 +201,7 @@ twurl_data_rec* twurl_data_rec_create(twurl_data_rec *id, twurl_data_iob *cx){
                         off_t ll = v->u.string.length;
                         char* ss = v->u.string.ptr;
 
-                        id = _data_rec_create(id,n,nz,ss,ll);
+                        record = _data_rec_create(record,n,nz,ss,ll);
                     }
                 }
             }
@@ -231,7 +231,7 @@ twurl_data_rec* twurl_data_rec_create(twurl_data_rec *id, twurl_data_iob *cx){
                                 off_t ll = v->u.string.length;
                                 char* ss = v->u.string.ptr;
 
-                                id = _data_rec_create(id,n,nz,ss,ll);
+                                record = _data_rec_create(record,n,nz,ss,ll);
                             }
                         }
                     }
@@ -240,7 +240,7 @@ twurl_data_rec* twurl_data_rec_create(twurl_data_rec *id, twurl_data_iob *cx){
             json_value_free(doc);
         }
     }
-    return id;
+    return record;
 }
 
 int twurl_data_rec_indexof(twurl_data_rec *record, char *name){
