@@ -24,10 +24,14 @@ Build
 
   Run 'make'.  Uses 'clang'.
 
-  Requires "libcurl".  See http://curl.se/
+  Requires "libcurl".
+    http://curl.se/
+
+  Requires "libreadline" (Gnu Readline).
+    apt-get install libreadline-dev
 
   Includes "json parser".
-  (https://github.com/json-parser/json-parser 11/2021)
+    https://github.com/json-parser/json-parser
 
 Usage
 

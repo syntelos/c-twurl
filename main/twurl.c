@@ -20,9 +20,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <readline/readline.h>
 
 typedef enum {
     main_op_unknown  = 0,
+    main_op_readline = 1,
     main_op_app_get  = 2,
     main_op_app_post = 3,
     main_op_user_get = 4,
@@ -42,6 +44,12 @@ main_op main_operator(int argx, int argc, char **argv){
         char *arg = argv[argx];
 
         switch(*arg){
+        case '-':
+            if (0 == strcmp("-",arg)){
+
+                return main_op_readline;
+            }
+            break;
         case 'a':
             if (0 == strcmp("app",arg)){
                 argx += 1;
@@ -192,6 +200,194 @@ void main_usage(int argc, char **argv){
     fprintf(stderr,"Description\n\n\tFetch URL to internal data table.  Update bearer\n\tcredentials.  Produce data to console or file.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys as well as the bearer\n\ttoken.\n\n");
 }
 
+typedef struct {
+
+    char *input;
+
+    int count;
+
+    char** array;
+
+} _readline_args;
+
+_readline_args* _readline_pargs(char* inl){
+
+    _readline_args* rel = calloc(1,sizeof(_readline_args));
+    if (null != rel){
+
+        rel->input = inl;
+
+        size_t length = strlen(inl);
+        char *inp = inl;
+
+        int count = 1;
+        int index;
+        int last = 0;
+        for (index = 0; index < length; index++, inp++){
+
+            if (' ' == *inp){
+
+                if (last < index ){
+
+                    count += 1;
+                }
+
+                last = (index+1);
+            }
+        }
+
+        rel->count = count;
+        rel->array = calloc(count,sizeof(char*));
+
+        if (1 < count){
+            inp = inl;
+
+            char *begin = inl;
+            char *end = inl;
+            off_t ax = 0;
+
+            for (index = 0; index < length; index++, inp++){
+
+                if (' ' == *inp){
+
+                    end = inp;
+
+                    if (begin < end && ax < count){
+                        size_t len = (end-begin);
+
+                        char *substring = calloc(len,sizeof(char));
+
+                        memcpy(substring,begin,len);
+
+                        rel->array[ax++] = substring;
+                    }
+                    begin = (end+1);
+                }
+            }
+
+            if (ax < count){
+                end = inp;
+
+                if (begin < end){
+                    size_t len = (end-begin);
+
+                    char *substring = calloc(len,sizeof(char));
+
+                    memcpy(substring,begin,len);
+
+                    rel->array[ax++] = substring;
+                }
+            }
+        }
+        else {
+
+            char *substring = calloc(length,sizeof(char));
+
+            memcpy(substring,inl,length);
+
+            rel->array[0] = substring;
+        }
+    }
+    return rel;
+}
+
+void _readline_dargs(_readline_args* args){
+    if (null != args){
+
+        free(args->input);
+        {
+            int index;
+            for (index = 0; index < args->count; index++){
+
+                free(args->array[index]);
+            }
+        }
+        free(args->array);
+        free(args);
+    }
+}
+
+int main_readline(int argx, int argc, char **argv){
+    char *minl;
+
+    while (null != (minl = readline("> "))){
+        _readline_args *args = _readline_pargs(minl);
+
+        switch (main_operator(0,args->count,args->array)){
+
+        case main_op_app_get:
+            main_app_get(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'app get %s'.\n",argv[0],args->array[2]);
+                return 1;
+            }
+            break;
+
+        case main_op_app_post:
+            main_app_post(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'app post %s %s'.\n",argv[0],args->array[2],args->array[3]);
+                return 1;
+            }
+            break;
+
+        case main_op_user_get:
+            main_user_get(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'user get %s'.\n",argv[0],args->array[2]);
+                return 1;
+            }
+            break;
+
+        case main_op_update:
+            main_update(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'update'.\n",argv[0]);
+                return 1;
+            }
+            break;
+
+        case main_op_delete:
+            main_delete(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'delete %s'.\n",argv[0],args->array[1]);
+                return 1;
+            }
+            break;
+
+        case main_op_print:
+            main_print(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'print'.\n",argv[0]);
+                return 1;
+            }
+            break;
+
+        case main_op_write:
+            main_write(0,args->count,args->array);
+            if (!main_state){
+
+                fprintf(stderr,"%s error processing 'write %s'.\n",argv[0],args->array[1]);
+                return 1;
+            }
+            break;
+
+        default:
+            fprintf(stderr,"%s error recognizing input '%s'.\n",argv[0],args->array[0]);
+            break;
+        }
+
+        _readline_dargs(args);
+    }
+    return 1;
+}
+
 int main(int argc, char **argv){
 
     if (1 < argc){
@@ -204,6 +400,10 @@ int main(int argc, char **argv){
                 if (main_state){
                     switch (main_operator(argx,argc,argv)){
 
+                    case main_op_readline:
+                        last = argx;
+                        argx += main_readline(argx,argc,argv);
+                        break;
                     case main_op_app_get:
                         last = argx;
                         argx += main_app_get(argx,argc,argv);
@@ -250,6 +450,10 @@ int main(int argc, char **argv){
                 }
                 else {
                     switch (main_operator(last,argc,argv)){
+
+                    case main_op_readline:
+                        fprintf(stderr,"%s error processing '%s'.\n",argv[0],argv[last]);
+                        return 1;
 
                     case main_op_app_get:
                         fprintf(stderr,"%s error processing 'app get %s'.\n",argv[0],argv[last+2]);

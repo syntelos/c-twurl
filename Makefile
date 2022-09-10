@@ -20,7 +20,7 @@ DEBUG := -g -ggdb
 #
 CCFLAGS := -Iinc $(PORTABILITY) $(WARNINGS) $(DEBUG)
 
-LDFLAGS := -lcurl -lm
+LDFLAGS := -lreadline -lcurl -lm
 #
 # DEPENDENCIES
 #
