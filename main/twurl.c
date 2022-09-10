@@ -26,7 +26,10 @@ typedef enum {
     main_op_app_get  = 2,
     main_op_app_post = 3,
     main_op_user_get = 4,
-    main_op_update   = 5
+    main_op_update   = 5,
+    main_op_delete   = 6,
+    main_op_print    = 7,
+    main_op_write    = 8
 
 } main_op;
 /*
@@ -54,6 +57,18 @@ main_op main_operator(int argx, int argc, char **argv){
                 }
             }
             break;
+        case 'd':
+            if (0 == strcmp("delete",arg)){
+
+                return main_op_delete;
+            }
+            break;
+        case 'p':
+            if (0 == strcmp("print",arg)){
+
+                return main_op_print;
+            }
+            break;
         case 'u':
             if (0 == strcmp("update",arg)){
 
@@ -67,6 +82,12 @@ main_op main_operator(int argx, int argc, char **argv){
 
                     return main_op_user_get;
                 }
+            }
+            break;
+        case 'w':
+            if (0 == strcmp("write",arg)){
+
+                return main_op_write;
             }
             break;
         default:
@@ -128,12 +149,47 @@ int main_update(int argx, int argc, char **argv){
     return 1;
 }
 
+int main_delete(int argx, int argc, char **argv){
+
+    argx += 1;
+
+    if (argx < argc){
+
+        char *arg = argv[argx];
+
+        int iarg = atoi(arg);
+
+        main_state = twurl_delete(iarg);
+    }
+    return 2;
+}
+
+int main_print(int argx, int argc, char **argv){
+
+    main_state = twurl_print();
+
+    return 1;
+}
+
+int main_write(int argx, int argc, char **argv){
+
+    argx += 1;
+
+    if (argx < argc){
+
+        char *arg = argv[argx];
+
+        main_state = twurl_write(arg);
+    }
+    return 2;
+}
+
 void main_usage(int argc, char **argv){
     char *pn = argv[0];
 
-    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s app update\n\n",pn,pn,pn,pn);
+    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s app update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\n",pn,pn,pn,pn,pn,pn,pn);
 
-    fprintf(stderr,"Description\n\n\tFetch URL to stdout.  Update bearer credentials.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys as well as the bearer\n\ttoken.\n\n");
+    fprintf(stderr,"Description\n\n\tFetch URL to internal data table.  Update bearer\n\tcredentials.  Produce data to console or file.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys as well as the bearer\n\ttoken.\n\n");
 }
 
 int main(int argc, char **argv){

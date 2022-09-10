@@ -21,21 +21,33 @@
 #include "syntelos.h"
 
 /*
- * Return true on success.
+ * Read data.  Return true on success.
  */
 bool_t twurl_app_get(char*);
 /*
- * Return true on success.
+ * Read data.  Return true on success.
  */
 bool_t twurl_app_post(char*,char*);
 /*
- * Return true on success.
+ * Read data.  Return true on success.
  */
 bool_t twurl_user_get(char*);
 /*
  * Fetch new bearer token to TWURL_STORE 'bearer_token.txt'.
  */
 bool_t twurl_update();
+/*
+ * Consolidate data.
+ */
+bool_t twurl_delete(int index);
+/*
+ * Output data.
+ */
+bool_t twurl_print();
+/*
+ * Write data.
+ */
+bool_t twurl_write(char *file);
 /*
  * Requires environment variable TWURL_STORE to define a
  * directory containing files "api_key.txt",

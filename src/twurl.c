@@ -17,6 +17,7 @@
  */
 
 #include "twurl.h"
+#include "twurl_data.h"
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -107,6 +108,11 @@ char *store_read_bearer(){
 }
 
 /*
+ * Internal application context.
+ */
+twurl_data_rec *data_rec = null;
+
+/*
  * Employ api/consumer secret and bearer token to fetch URL
  * to standard console output.
  */
@@ -138,6 +144,12 @@ bool_t twurl_app_post(char *scope, char *url){
                         curl_easy_setopt(curl, CURLOPT_POST, 1);
                         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, scope);
 
+                        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
+
+                        twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
+
+                        curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
+
                         CURLcode re = curl_easy_perform(curl);
 
                         curl_easy_cleanup(curl);
@@ -150,7 +162,14 @@ bool_t twurl_app_post(char *scope, char *url){
 
                         if (CURLE_OK == re){
 
+                            data_rec = twurl_data_rec_create(data_rec,data_iob);
+
+                            twurl_data_iob_destroy(data_iob);
+
                             return true;
+                        }
+                        else {
+                            twurl_data_iob_destroy(data_iob);
                         }
                     }
                     else {
@@ -205,6 +224,12 @@ bool_t twurl_app_get(char *url){
 
                         curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
 
+                        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
+
+                        twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
+
+                        curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
+
                         CURLcode re = curl_easy_perform(curl);
 
                         curl_easy_cleanup(curl);
@@ -217,7 +242,14 @@ bool_t twurl_app_get(char *url){
 
                         if (CURLE_OK == re){
 
+                            data_rec = twurl_data_rec_create(data_rec,data_iob);
+
+                            twurl_data_iob_destroy(data_iob);
+
                             return true;
+                        }
+                        else {
+                            twurl_data_iob_destroy(data_iob);
                         }
                     }
                     else {
@@ -264,6 +296,12 @@ bool_t twurl_user_get(char *url){
 
                 curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
 
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
+
+                twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
+
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
+
                 CURLcode re = curl_easy_perform(curl);
 
                 curl_easy_cleanup(curl);
@@ -272,7 +310,14 @@ bool_t twurl_user_get(char *url){
 
                 if (CURLE_OK == re){
 
+                    data_rec = twurl_data_rec_create(data_rec,data_iob);
+
+                    twurl_data_iob_destroy(data_iob);
+
                     return true;
+                }
+                else {
+                    twurl_data_iob_destroy(data_iob);
                 }
             }
             else {
@@ -287,7 +332,28 @@ bool_t twurl_user_get(char *url){
  */
 bool_t twurl_update(){
 
-    return false;
+    return false; // TODO
+}
+/*
+ * Consolidate data.
+ */
+bool_t twurl_delete(int index){
+
+    return false; // TODO
+}
+/*
+ * Output data.
+ */
+bool_t twurl_print(){
+
+    return false; // TODO
+}
+/*
+ * Write data.
+ */
+bool_t twurl_write(char *file){
+
+    return false; // TODO
 }
 /*
  * Read TWURL_STORE.

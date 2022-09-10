@@ -33,16 +33,27 @@ Usage
 
   twurl user get <url>
 
-    Employ bearer token to fetch URL to standard console
-    output.
+    Employ bearer token to fetch URL to internal data table.
 
   twurl app get <url>
 
     Employ api/consumer secret and bearer token to fetch
-    URL to standard console output.
+    URL to internal data table.
 
   twurl update
 
     Fetch new bearer token to TWURL_STORE
     'bearer_token.txt'.
+
+  twurl delete <index>
+
+    Truncate element from internal data table.
+
+  twurl print
+
+    Write internal data table to console.
+
+  twurl write <file>
+
+    Write internal data table to file.
 
