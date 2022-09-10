@@ -107,7 +107,7 @@ bool_t work_write(char *file, char *source, off_t size){
 
     if (0 == chdir(twurl_work)){
 
-        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC));
+        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC),0644);
         if (-1 < fd){
 
             ssize_t wr;
@@ -201,7 +201,7 @@ bool_t store_write(char *file, char *source, off_t size){
 
     if (0 == chdir(twurl_store)){
 
-        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC));
+        fd_t fd = open(file,(O_WRONLY|O_CREAT|O_TRUNC),0644);
         if (-1 < fd){
 
             ssize_t wr;
@@ -247,61 +247,47 @@ bool_t twurl_app_post(char *scope, char *url){
         if (null != username){
             char *password = store_read_password();
             if (null != password){
-                char *bearer = store_read_bearer();
-                if (null != bearer){
 
-                    CURL *curl = curl_easy_init();
-                    if (null != curl) {
-                        curl_easy_setopt(curl, CURLOPT_URL, url);
-                        curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
+                CURL *curl = curl_easy_init();
+                if (null != curl) {
+                    curl_easy_setopt(curl, CURLOPT_URL, url);
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
 
-                        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+                    curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
-                        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+                    curl_easy_setopt(curl, CURLOPT_HTTPPOST, 1);
 
-                        curl_easy_setopt(curl, CURLOPT_USERNAME, username);
+                    curl_easy_setopt(curl, CURLOPT_USERNAME, username);
 
-                        curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
+                    curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
 
-                        curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
+                    curl_easy_setopt(curl, CURLOPT_POST, 1);
+                    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, scope);
 
-                        curl_easy_setopt(curl, CURLOPT_POST, 1);
-                        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, scope);
+                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
 
-                        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
+                    twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
 
-                        twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
+                    curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
 
-                        curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
+                    CURLcode re = curl_easy_perform(curl);
 
-                        CURLcode re = curl_easy_perform(curl);
+                    curl_easy_cleanup(curl);
 
-                        curl_easy_cleanup(curl);
+                    free(username);
 
-                        free(username);
+                    free(password);
 
-                        free(password);
+                    if (CURLE_OK == re){
 
-                        free(bearer);
+                        data_rec = twurl_data_rec_create(data_rec,data_iob);
 
-                        if (CURLE_OK == re){
+                        twurl_data_iob_destroy(data_iob);
 
-                            data_rec = twurl_data_rec_create(data_rec,data_iob);
-
-                            twurl_data_iob_destroy(data_iob);
-
-                            return true;
-                        }
-                        else {
-                            twurl_data_iob_destroy(data_iob);
-                        }
+                        return true;
                     }
                     else {
-                        free(username);
-
-                        free(password);
-
-                        free(bearer);
+                        twurl_data_iob_destroy(data_iob);
                     }
                 }
                 else {
@@ -328,60 +314,46 @@ bool_t twurl_app_get(char *url){
         if (null != username){
             char *password = store_read_password();
             if (null != password){
-                char *bearer = store_read_bearer();
-                if (null != bearer){
 
-                    CURL *curl = curl_easy_init();
-                    if (null != curl) {
-                        curl_easy_setopt(curl, CURLOPT_URL, url);
-                        curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
+                CURL *curl = curl_easy_init();
+                if (null != curl) {
+                    curl_easy_setopt(curl, CURLOPT_URL, url);
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT, TWURL_UA);
 
-                        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+                    curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
-                        curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
+                    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
 
-                        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+                    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 
-                        curl_easy_setopt(curl, CURLOPT_USERNAME, username);
+                    curl_easy_setopt(curl, CURLOPT_USERNAME, username);
 
-                        curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
+                    curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
 
-                        curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, bearer);
+                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
 
-                        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &twurl_data_iob_reader);
+                    twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
 
-                        twurl_data_iob *data_iob = calloc(1,sizeof(twurl_data_iob));
+                    curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
 
-                        curl_easy_setopt(curl, CURLOPT_WRITEDATA, data_iob);
+                    CURLcode re = curl_easy_perform(curl);
 
-                        CURLcode re = curl_easy_perform(curl);
+                    curl_easy_cleanup(curl);
 
-                        curl_easy_cleanup(curl);
+                    free(username);
 
-                        free(username);
+                    free(password);
 
-                        free(password);
+                    if (CURLE_OK == re){
 
-                        free(bearer);
+                        data_rec = twurl_data_rec_create(data_rec,data_iob);
 
-                        if (CURLE_OK == re){
+                        twurl_data_iob_destroy(data_iob);
 
-                            data_rec = twurl_data_rec_create(data_rec,data_iob);
-
-                            twurl_data_iob_destroy(data_iob);
-
-                            return true;
-                        }
-                        else {
-                            twurl_data_iob_destroy(data_iob);
-                        }
+                        return true;
                     }
                     else {
-                        free(username);
-
-                        free(password);
-
-                        free(bearer);
+                        twurl_data_iob_destroy(data_iob);
                     }
                 }
                 else {
@@ -456,7 +428,38 @@ bool_t twurl_user_get(char *url){
  */
 bool_t twurl_update(){
 
-    return false; // TODO
+    if (null != data_rec){
+
+        twurl_data_rec_destroy(data_rec);
+
+        data_rec = null;
+    }
+
+    if (twurl_app_post("grant_type=client_credentials","https://api.twitter.com/oauth2/token")){
+
+        twurl_data_rec *record = twurl_data_rec_find(data_rec,"access_token");
+        if (null != record){
+
+            char *src = record->object;
+            size_t len = strlen(src);
+
+            if (store_write("bearer_token.txt",src,len)){
+
+                twurl_data_rec_destroy(data_rec);
+
+                data_rec = null;
+
+                return true;
+            }
+            else {
+
+                twurl_data_rec_destroy(data_rec);
+
+                data_rec = null;
+            }
+        }
+    }
+    return false;
 }
 /*
  * Consolidate data.

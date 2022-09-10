@@ -41,8 +41,8 @@ Usage
 
   twurl app get <url>
 
-    Employ api/consumer secret and bearer token to fetch
-    URL to internal data table.
+    Employ api/consumer secret to fetch URL to internal data
+    table.
 
   twurl update
 

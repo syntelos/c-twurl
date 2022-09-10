@@ -195,9 +195,9 @@ int main_write(int argx, int argc, char **argv){
 void main_usage(int argc, char **argv){
     char *pn = argv[0];
 
-    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s app update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\n",pn,pn,pn,pn,pn,pn,pn);
+    fprintf(stderr,"Synopsis\n\n\t%s app get <url>\n\t%s app post <scope> <url>\n\t%s user get <url>\n\t%s update\n\t%s delete <index>\n\t%s print\n\t%s write <file>\n\n",pn,pn,pn,pn,pn,pn,pn);
 
-    fprintf(stderr,"Description\n\n\tFetch URL to internal data table.  Update bearer\n\tcredentials.  Produce data to console or file.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys as well as the bearer\n\ttoken.\n\n");
+    fprintf(stderr,"Description\n\n\tFetch URL to internal data table.  Update bearer\n\tcredentials.  Produce data to console or file.\n\n\tThe user access employs the bearer token.  The app\n\taccess employs the API keys.\n\n");
 }
 
 typedef struct {

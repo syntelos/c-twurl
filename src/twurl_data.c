@@ -243,15 +243,46 @@ twurl_data_rec* twurl_data_rec_create(twurl_data_rec *id, twurl_data_iob *cx){
     return id;
 }
 
-void twurl_data_rec_destroy(twurl_data_rec *id){
+int twurl_data_rec_indexof(twurl_data_rec *record, char *name){
+    if (null != record && null != name){
+        twurl_data_rec *rp;
+        int idx;
 
-    while (null != id){
+        for (idx = 0, rp = record; null != rp; idx++, rp = rp->next){
 
-        twurl_data_rec *n = id->next;
-        {
-            memset(id,0,sizeof(twurl_data_rec));
-            free(id);
+            if (0 == strcmp(rp->identity,name)){
+
+                return idx;
+            }
         }
-        id = n;
+    }
+    return -1;
+}
+
+twurl_data_rec* twurl_data_rec_find(twurl_data_rec *record, char *name){
+    if (null != record && null != name){
+        twurl_data_rec *rp;
+
+        for (rp = record; null != rp; rp = rp->next){
+
+            if (0 == strcmp(rp->identity,name)){
+
+                return rp;
+            }
+        }
+    }
+    return null;
+}
+
+void twurl_data_rec_destroy(twurl_data_rec *record){
+
+    while (null != record){
+
+        twurl_data_rec *n = record->next;
+        {
+            memset(record,0,sizeof(twurl_data_rec));
+            free(record);
+        }
+        record = n;
     }
 }

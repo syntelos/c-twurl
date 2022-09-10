@@ -75,6 +75,10 @@ void twurl_data_iob_destroy(twurl_data_iob*);
  */
 twurl_data_rec* twurl_data_rec_create(twurl_data_rec*,twurl_data_iob*);
 
+int twurl_data_rec_indexof(twurl_data_rec*,char*);
+
+twurl_data_rec* twurl_data_rec_find(twurl_data_rec*,char*);
+
 void twurl_data_rec_destroy(twurl_data_rec*);
 
 #endif
