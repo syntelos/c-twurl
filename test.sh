@@ -47,9 +47,17 @@ function test_together {
     fi
 }
 
-test_created
+if ! test_created
+then
+    exit 1
+fi
 
+if ! test_embeded
+then
+    exit 1
+fi
 
-test_embeded
-
-test_together
+if ! test_together
+then
+    exit 1
+fi
